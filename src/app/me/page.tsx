@@ -46,7 +46,8 @@ export default function MePage() {
           </p>
 
           <p className="mt-2 text-sm text-blue-800">
-            অ্যাক্সেস মেয়াদ: <strong>৩১ ডিসেম্বর, ২০২৬</strong>
+            {/* অ্যাক্সেস মেয়াদ: <strong>৩১ ডিসেম্বর, ২০২৬</strong> */}
+            অ্যাক্সেস মেয়াদ: <strong>1 week</strong>
           </p>
         </div>
 

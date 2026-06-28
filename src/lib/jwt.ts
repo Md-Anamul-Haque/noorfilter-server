@@ -2,6 +2,8 @@ import { SignJWT, jwtVerify, type JWTPayload } from "jose"
 const ACCESS_SECRET = new TextEncoder().encode('JWT_ACCESS_SECRET')
 type AuthContext = {
     userId:string;
+    // valid end date
+    expiresAt:string;
 }
 export interface TokenPayload extends JWTPayload, AuthContext { }
 /**
