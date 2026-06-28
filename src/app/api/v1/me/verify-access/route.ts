@@ -14,7 +14,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 }
 export async function GET() {
-  const headersList = await headers()
+  try {
+    const headersList = await headers()
   const bearerToken = headersList.get('Authorization')
   const token = bearerToken?.split(' ')[1] || null;
   if (!token) {
@@ -30,7 +31,8 @@ export async function GET() {
   // it's for testing, you can change it to your own logic to check if the user is valid or not
   const { expiresAt } = parsedToken;
   const now = new Date()
-  if (new Date(expiresAt) < now) {
+  const exDate = new Date(expiresAt)
+  if (exDate < now) {
     const resData: ResData = {
       is_valid: false,
       valid_until: 0,
@@ -41,17 +43,27 @@ export async function GET() {
   const new_token = await signAccessToken({
     userId,
     expiresAt
-  }, '1w') // 1 week expiration
+  }, exDate) // 1 week expiration
   // const dbExpiryDate = new Date()
   // dbExpiryDate.setHours(dbExpiryDate.getHours() + 1); // 1 hour from now
   // const userValidUntil = Math.floor(dbExpiryDate.getTime() / 1000); // Convert to Unix Timestamp (Seconds)
-  const validUntil = Math.floor(new Date().getTime() / 1000) + (2 * 60) // for testing, 2 minutes from now
+  // const validUntil = Math.floor(new Date().getTime() / 1000) + (2 * 60) // for testing, 2 minutes from now
+  const validUntil = Math.floor(exDate.getTime() / 1000); // Convert to Unix Timestamp (Seconds)
   const resData: ResData = {
     is_valid: true,
     valid_until: validUntil,
     token: new_token
   }
   return NextResponse.json(resData, { status: 200, headers: corsHeaders });
+  } catch (error) {
+    console.error("Error verifying access:", error);
+    const resData: ResData = {
+      is_valid: false,
+      valid_until: 0,
+      error: "Internal server error",
+    }
+    return NextResponse.json(resData, { status: 500, headers: corsHeaders });
+  }
 }
 
 
