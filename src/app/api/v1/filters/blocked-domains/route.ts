@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import adultFilterData from "@/data/filters/blocked-domains/adult.json";
 import scamFilterData from "@/data/filters/blocked-domains/scam.json";
+import drugsFilterData from "@/data/filters/blocked-domains/drugs.json";
 export async function GET() {
   return NextResponse.json({
     adult:adultFilterData.domains,
@@ -13,12 +14,8 @@ export async function GET() {
       "luckyjackpot.net"
     ],
 
-    drugs: [
-      "buy-drugs-online.com",
-      "weed-market.net",
-      "drug-store-demo.org",
-      "narcotics-example.com"
-    ],
+    drugs: drugsFilterData.domains,
+
 
     malware: [
       "malware-download.com",
