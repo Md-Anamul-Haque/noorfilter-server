@@ -4,14 +4,20 @@ import { db } from "@/db";
 import { transactions, subscriptions, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import z from "zod";
+import { verifyAccessToken } from "@/lib/jwt";
+import { headers } from "next/headers";
+import { corsHeaders } from "@/lib/corsHeaders";
+
+// CORS Preflight request এর জন্য OPTIONS মেথড
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 // Initialize the Google Play Developer API client
-// Note: You must provide these credentials in your .env file
 const playDeveloperApi = google.androidpublisher("v3");
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    // Fix private key newlines if they are escaped in env vars
     private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   },
   scopes: ["https://www.googleapis.com/auth/androidpublisher"],
@@ -23,26 +29,41 @@ export async function POST(req: Request) {
     const zschemaOfBody = z.object({
       purchaseToken: z.string(),
       productId: z.string(),
-      userId: z.string(),
       packageName: z.string(),
     });
+
+    const headersList = await headers();
+    const bearerToken = headersList.get('Authorization');
+    const token = bearerToken?.split(' ')[1] || null;
+
+    if (!token) {
+      return NextResponse.json({
+        is_valid: false,
+        valid_until: 0,
+        error: "Membership expired or invalid token",
+      }, { status: 401, headers: corsHeaders });
+    }
+
+    const { userId } = await verifyAccessToken(token);
+
     const { data: parsedBody, success, error } = zschemaOfBody.safeParse(body);
     if (!success) {
       return NextResponse.json(
         { success: false, message: "Invalid request body", error },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
-    const { purchaseToken, productId, userId, packageName } = parsedBody;
+    const { purchaseToken, productId, packageName } = parsedBody;
 
-    // 1. Check if this token was already processed to prevent duplicate processing
+    // 1. Check if this token was already processed (Corrected Drizzle Syntax)
     const existingTransaction = await db.query.transactions.findFirst({
       where: { transactionId: purchaseToken },
     });
 
     if (existingTransaction) {
       return NextResponse.json(
-        { success: true, message: "Purchase already verified" }
+        { success: true, message: "Purchase already verified" },
+        { headers: corsHeaders }
       );
     }
 
@@ -61,20 +82,19 @@ export async function POST(req: Request) {
       console.error("Google Play API Error:", apiError.message);
       return NextResponse.json(
         { success: false, message: "Failed to verify token with Google" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // purchaseState: 0 = Purchased, 1 = Canceled, 2 = Pending
-    // For subscriptions, paymentState: 1 = Payment received
+    // For subscriptions, paymentState: 1 = Payment received, 2 = Free trial
     if (purchaseInfo.paymentState !== 1 && purchaseInfo.paymentState !== 2) {
       return NextResponse.json(
         { success: false, message: "Payment not completed or invalid state" },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // 3. Save the transaction record in our unified database
+    // 3. Save the transaction record
     await db.insert(transactions).values({
       userId,
       paymentMethod: "google_play",
@@ -88,20 +108,19 @@ export async function POST(req: Request) {
     });
 
     // 4. Update the user's subscription
-    // Assuming 'premium_1_month' or 'premium_1_year' are your product IDs
-    let addDays = 30; // Default to 30 days
+    let addDays = 30; // Default 1 month
     if (productId.includes("year")) {
       addDays = 365;
     } else if (productId.includes("6month")) {
       addDays = 180;
     }
 
+    // Corrected Drizzle Syntax
     const currentSub = await db.query.subscriptions.findFirst({
-      where: { userId: userId },
+      where: { userId },
     });
 
     const now = new Date();
-    // If they already have an active sub, extend it. Otherwise, start from today.
     const baseDate = (currentSub?.currentPeriodEnd && currentSub.currentPeriodEnd > now)
       ? new Date(currentSub.currentPeriodEnd)
       : now;
@@ -129,13 +148,13 @@ export async function POST(req: Request) {
       success: true,
       message: "Subscription updated successfully",
       validUntil: baseDate
-    });
+    }, { headers: corsHeaders });
 
   } catch (error: any) {
     console.error("Verification Error:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

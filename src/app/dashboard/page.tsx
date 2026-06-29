@@ -397,24 +397,9 @@ function DashboardContent() {
                       </div>
                     )}
 
-                    {/* 2. Premium Paid Plan */}
-                    <div 
-                      className={`group relative bg-white rounded-3xl transition-all duration-300 cursor-pointer overflow-hidden ${
-                        selectedPlan === 'paid' 
-                          ? 'border-2 border-indigo-500 shadow-xl shadow-indigo-100/50 scale-[1.01]' 
-                          : 'border border-slate-200/80 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1'
-                      }`}
-                      onClick={() => setSelectedPlan('paid')}
-                    >
-                      <div className={`absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl transition-opacity duration-300 ${selectedPlan === 'paid' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
-                      
-                      {selectedPlan === 'paid' && (
-                        <div className="absolute top-6 right-6 text-indigo-500 animate-in zoom-in duration-300">
-                          <div className="bg-indigo-50 p-1 rounded-full">
-                            <CheckCircle2 className="w-6 h-6" />
-                          </div>
-                        </div>
-                      )}
+                    {/* 2. Premium Paid Plan (via Android App) */}
+                    <div className="group relative bg-white rounded-3xl transition-all duration-300 overflow-hidden border border-slate-200/80 hover:border-indigo-300 hover:shadow-lg">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl opacity-50"></div>
 
                       <div className="p-7 sm:p-9 relative z-10">
                         <div className="flex items-center gap-3 mb-3">
@@ -423,97 +408,49 @@ function DashboardContent() {
                         <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Paid Subscription</h3>
                         <p className="text-slate-500 font-medium mb-8 max-w-2xl">Unlock unrestricted access to advanced filtering, comprehensive protection, and priority support across all your devices.</p>
                         
-                        {selectedPlan === 'paid' ? (
-                          <div className="space-y-4 mb-8">
-                            {/* 1 Year */}
-                            <div 
-                              className={`relative overflow-hidden flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${
-                                selectedPaidDuration === '1year' 
-                                  ? 'border-indigo-500 bg-indigo-50/50 shadow-md' 
-                                  : 'border-slate-100 hover:border-indigo-300 hover:bg-slate-50'
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPaidDuration('1year');
-                              }}
-                            >
-                              {selectedPaidDuration === '1year' && (
-                                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-indigo-500 to-transparent opacity-10"></div>
-                              )}
-                              <div className="mb-2 sm:mb-0 relative z-10">
-                                <div className="flex items-center gap-3">
-                                  <div className="font-extrabold text-slate-900 text-lg">1 Year Subscription</div>
-                                  <span className="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">Best Value</span>
-                                </div>
-                                <div className="text-indigo-600 text-sm font-bold mt-0.5">Equates to ৳২৫/মাস</div>
+                        {/* Pricing Display (Read-only) */}
+                        <div className="space-y-3 mb-8">
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl border-2 border-indigo-500 bg-indigo-50/50 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-indigo-500 to-transparent opacity-10"></div>
+                            <div className="mb-2 sm:mb-0 relative z-10">
+                              <div className="flex items-center gap-3">
+                                <div className="font-extrabold text-slate-900 text-lg">1 Year Subscription</div>
+                                <span className="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">Best Value</span>
                               </div>
-                              <div className="text-2xl font-black text-slate-900 relative z-10">৳২৯৯</div>
+                              <div className="text-indigo-600 text-sm font-bold mt-0.5">Equates to ৳২৫/মাস</div>
                             </div>
-                            
-                            {/* 6 Months */}
-                            <div 
-                              className={`flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${
-                                selectedPaidDuration === '6month' 
-                                  ? 'border-indigo-500 bg-indigo-50/50 shadow-md' 
-                                  : 'border-slate-100 hover:border-indigo-300 hover:bg-slate-50'
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPaidDuration('6month');
-                              }}
-                            >
-                              <div className="mb-2 sm:mb-0">
-                                <div className="font-bold text-slate-900 text-lg">6 Months Subscription</div>
-                                <div className="text-slate-500 text-sm font-medium mt-0.5">Equates to ৳৩৮/মাস</div>
-                              </div>
-                              <div className="text-2xl font-black text-slate-900">৳২৩০</div>
-                            </div>
-                            
-                            {/* 30 Days */}
-                            <div 
-                              className={`flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${
-                                selectedPaidDuration === '30day' 
-                                  ? 'border-indigo-500 bg-indigo-50/50 shadow-md' 
-                                  : 'border-slate-100 hover:border-indigo-300 hover:bg-slate-50'
-                              }`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPaidDuration('30day');
-                              }}
-                            >
-                              <div className="mb-2 sm:mb-0">
-                                <div className="font-bold text-slate-900 text-lg">30 Days Subscription</div>
-                                <div className="text-slate-500 text-sm font-medium mt-0.5">Flexible monthly billing</div>
-                              </div>
-                              <div className="text-2xl font-black text-slate-900">৳৫০</div>
-                            </div>
+                            <div className="text-2xl font-black text-slate-900 relative z-10">৳২৯৯</div>
                           </div>
-                        ) : (
-                          <div className="flex items-baseline gap-2 mb-8">
-                            <span className="text-base font-semibold text-slate-400">Starting from</span>
-                            <span className="text-4xl font-black text-slate-900">৳২৫</span>
-                            <span className="text-slate-500 font-medium">/মাস</span>
+                          
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl border-2 border-slate-100">
+                            <div className="mb-2 sm:mb-0">
+                              <div className="font-bold text-slate-900 text-lg">6 Months Subscription</div>
+                              <div className="text-slate-500 text-sm font-medium mt-0.5">Equates to ৳৩৮/মাস</div>
+                            </div>
+                            <div className="text-2xl font-black text-slate-900">৳২৩০</div>
                           </div>
-                        )}
+                          
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center p-5 rounded-2xl border-2 border-slate-100">
+                            <div className="mb-2 sm:mb-0">
+                              <div className="font-bold text-slate-900 text-lg">30 Days Subscription</div>
+                              <div className="text-slate-500 text-sm font-medium mt-0.5">Flexible monthly billing</div>
+                            </div>
+                            <div className="text-2xl font-black text-slate-900">৳৫০</div>
+                          </div>
+                        </div>
 
-                        <button 
-                          className={`w-full py-4 px-6 rounded-2xl font-bold transition-all duration-300 ${
-                            selectedPlan === 'paid' 
-                              ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:scale-[1.01]' 
-                              : 'bg-slate-100 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-700'
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (selectedPlan === 'paid') {
-                              // proceed to checkout
-                              console.log("Proceeding to checkout with duration:", selectedPaidDuration);
-                            } else {
-                              setSelectedPlan('paid');
-                            }
-                          }}
-                        >
-                          {selectedPlan === 'paid' ? 'Proceed to Secure Checkout' : 'View Pricing Options'}
-                        </button>
+                        {/* Subscribe via App Message */}
+                        <div className="bg-indigo-50 border border-indigo-200/60 rounded-2xl p-5 flex gap-4 items-center">
+                          <div className="p-2.5 bg-indigo-100 rounded-xl flex-shrink-0">
+                            <Smartphone className="w-6 h-6 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-indigo-900 text-sm">Subscribe via the NoorFilter App</p>
+                            <p className="text-indigo-700/70 text-sm font-medium mt-0.5">
+                              Open the NoorFilter app on your Android device to purchase a subscription securely through Google Play.
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
