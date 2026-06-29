@@ -1,22 +1,16 @@
 import { db } from "@/db"; // your drizzle instance
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { admin, twoFactor } from "better-auth/plugins";
-import * as schema from "@/db/schema";
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg", // or "mysql", "sqlite"
         usePlural: true,
-        schema:{
-            users: schema.usersTable,
-            sessions: schema.sessionsTable,
-            accounts: schema.accountsTable,
-            verifications: schema.verificationsTable,
-            twoFactors: schema.twoFactorsTable,
-        }
     }),
-    experimental: { joins: true },
-    
+    emailAndPassword: {
+        enabled: true,
+    },
+
     plugins: [
         twoFactor(),
         admin()
@@ -40,7 +34,7 @@ export const auth = betterAuth({
                             role: "user", // server-side enforced default
                         },
                     };
-                },
+                }
             },
         },
     },

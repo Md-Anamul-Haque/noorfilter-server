@@ -1,9 +1,10 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose"
-const ACCESS_SECRET = new TextEncoder().encode('JWT_ACCESS_SECRET')
+const ACCESS_SECRET = new TextEncoder().encode(process.env.JWT_ACCESS_SECRET!)
 type AuthContext = {
-    userId:string;
-    // valid end date
-    expiresAt:string;
+  userId: string;
+  // valid end date
+  expiresAt: string;
+  generatedAt: string;
 }
 export interface TokenPayload extends JWTPayload, AuthContext { }
 /**
@@ -12,7 +13,7 @@ export interface TokenPayload extends JWTPayload, AuthContext { }
  * @param exp secound/string like 7d,4h /Date
  * @returns 
  */
-export async function signAccessToken(context: AuthContext,exp: string | number | Date): Promise<string> {
+export async function signAccessToken(context: AuthContext, exp: string | number | Date): Promise<string> {
   return new SignJWT(context)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
-export default async function MePage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function SignUpPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const searchParams = await props.searchParams;
-  
-  // Convert search parameters to query string
+
+  // Redirect signup to login, preserving all query params
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(searchParams)) {
     if (typeof value === "string") {
@@ -14,5 +14,5 @@ export default async function MePage(props: { searchParams: Promise<{ [key: stri
   }
 
   const queryString = query.toString();
-  redirect(`/dashboard${queryString ? `?${queryString}` : ""}`);
+  redirect(`/login${queryString ? `?${queryString}` : ""}`);
 }

@@ -3,41 +3,65 @@ import { defineRelations } from "drizzle-orm"
 import * as schema from "./schema"
 
 export const relations = defineRelations(schema, (r) => ({
-    usersTable:{
-        sessions: r.many.sessionsTable({
-            from: r.usersTable.id,
-            to: r.sessionsTable.userId,
+    users: {
+        sessions: r.many.sessions({
+            from: r.users.id,
+            to: r.sessions.userId,
             alias: "sessions",
         }),
-        accounts: r.many.accountsTable({
-            from: r.usersTable.id,
-            to: r.accountsTable.userId,
+        accounts: r.many.accounts({
+            from: r.users.id,
+            to: r.accounts.userId,
             alias: "accounts",
         }),
-        twoFactors: r.many.twoFactorsTable({
-            from: r.usersTable.id,
-            to: r.twoFactorsTable.userId,
+        twoFactors: r.many.twoFactors({
+            from: r.users.id,
+            to: r.twoFactors.userId,
             alias: "twoFactors",
         }),
+        subscription: r.one.subscriptions({
+            from: r.users.id,
+            to: r.subscriptions.userId,
+            alias: "subscription",
+        }),
+        freeAccessRequests: r.many.freeAccessRequests({
+            from: r.users.id,
+            to: r.freeAccessRequests.userId,
+            alias: "freeAccessRequests",
+        }),
     },
-    sessionsTable: {
-        user: r.one.usersTable({
-            from: r.sessionsTable.userId,
-            to: r.usersTable.id,
+    sessions: {
+        user: r.one.users({
+            from: r.sessions.userId,
+            to: r.users.id,
             alias: "user",
         }),
     },
-    accountsTable: {
-        user: r.one.usersTable({
-            from: r.accountsTable.userId,
-            to: r.usersTable.id,
+    accounts: {
+        user: r.one.users({
+            from: r.accounts.userId,
+            to: r.users.id,
             alias: "user",
         }),
     },
-    twoFactorsTable: {
-        user: r.one.usersTable({
-            from: r.twoFactorsTable.userId,
-            to: r.usersTable.id,
+    twoFactors: {
+        user: r.one.users({
+            from: r.twoFactors.userId,
+            to: r.users.id,
+            alias: "user",
+        }),
+    },
+    subscriptions: {
+        user: r.one.users({
+            from: r.subscriptions.userId,
+            to: r.users.id,
+            alias: "user",
+        }),
+    },
+    freeAccessRequests: {
+        user: r.one.users({
+            from: r.freeAccessRequests.userId,
+            to: r.users.id,
             alias: "user",
         }),
     },

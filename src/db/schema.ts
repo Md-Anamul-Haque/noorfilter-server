@@ -1,8 +1,7 @@
-import { sql } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index, uuid } from "drizzle-orm/pg-core";
 
-export const usersTable = pgTable("users", {
-  id: uuid("id").primaryKey().default(sql`uuidv7()::uuid`),
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
@@ -19,10 +18,10 @@ export const usersTable = pgTable("users", {
   banExpires: timestamp("ban_expires"),
 });
 
-export const sessionsTable = pgTable(
+export const sessions = pgTable(
   "sessions",
   {
-    id: uuid("id").primaryKey().default(sql`uuidv7()::uuid`),
+    id: text("id").primaryKey(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -31,23 +30,23 @@ export const sessionsTable = pgTable(
       .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     impersonatedBy: text("impersonated_by"),
   },
   (table) => [index("sessions_userId_idx").on(table.userId)],
 );
 
-export const accountsTable = pgTable(
+export const accounts = pgTable(
   "accounts",
   {
-    id: uuid("id").primaryKey().default(sql`uuidv7()::uuid`),
+    id: text("id").primaryKey(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
     idToken: text("id_token"),
@@ -63,10 +62,10 @@ export const accountsTable = pgTable(
   (table) => [index("accounts_userId_idx").on(table.userId)],
 );
 
-export const verificationsTable = pgTable(
+export const verifications = pgTable(
   "verifications",
   {
-    id: uuid("id").primaryKey().default(sql`uuidv7()::uuid`),
+    id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
@@ -79,19 +78,54 @@ export const verificationsTable = pgTable(
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 );
 
-export const twoFactorsTable = pgTable(
+export const twoFactors = pgTable(
   "two_factors",
   {
-    id: uuid("id").primaryKey().default(sql`uuidv7()::uuid`),
+    id: text("id").primaryKey(),
     secret: text("secret").notNull(),
     backupCodes: text("backup_codes").notNull(),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
-      .references(() => usersTable.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     verified: boolean("verified").default(true),
   },
   (table) => [
     index("twoFactors_secret_idx").on(table.secret),
     index("twoFactors_userId_idx").on(table.userId),
   ],
+);
+
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    plan: text("plan").notNull().default("free"), // 'free', 'premium'
+    status: text("status").notNull().default("trialing"), // 'trialing', 'active', 'expired', 'canceled'
+    trialExpiresAt: timestamp("trial_expires_at"),
+    currentPeriodEnd: timestamp("current_period_end"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("subscriptions_userId_idx").on(table.userId)],
+);
+
+export const freeAccessRequests = pgTable(
+  "free_access_requests",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reason: text("reason").notNull(),
+    status: text("status").notNull().default("approved"), // automatically approved for now based on requirements
+    grantedUntil: timestamp("granted_until").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("freeAccessRequests_userId_idx").on(table.userId)],
 );

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from 'next/headers'
 import { signAccessToken, verifyAccessToken } from "@/lib/jwt";
+import { db } from "@/db";
+import { subscriptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 type ResData = {
   is_valid: boolean;
@@ -13,64 +16,104 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 }
+
 export async function GET() {
   try {
     const headersList = await headers()
-  const bearerToken = headersList.get('Authorization')
-  const token = bearerToken?.split(' ')[1] || null;
-  if (!token) {
-    const resData: ResData = {
-      is_valid: false,
-      valid_until: 0,
-      error: "Membership expired or invalid token",
+    const bearerToken = headersList.get('Authorization')
+    const token = bearerToken?.split(' ')[1] || null;
+
+    if (!token) {
+      return NextResponse.json({
+        is_valid: false,
+        valid_until: 0,
+        error: "Membership expired or invalid token",
+      }, { status: 401, headers: corsHeaders });
     }
-    return NextResponse.json(resData, { status: 401, headers: corsHeaders });
-  }
-  const parsedToken = await verifyAccessToken(token)
-  const userId = "user123"; // উদাহরণস্বরূপ, এটি ডাটাবেস থেকে আসা ইউজারের আইডি হতে পারে
-  // it's for testing, you can change it to your own logic to check if the user is valid or not
-  const { expiresAt } = parsedToken;
-  const now = new Date()
-  const exDate = new Date(expiresAt)
-  if (exDate < now) {
-    const resData: ResData = {
-      is_valid: false,
-      valid_until: 0,
-      error: "Membership expired",
+
+    const parsedToken = await verifyAccessToken(token)
+    const { userId, expiresAt, generatedAt } = parsedToken;
+    const now = new Date()
+    const exDate = new Date(expiresAt)
+    const genDate = generatedAt ? new Date(generatedAt) : new Date(0);
+
+    // If the token is mathematically expired (the max 3-month has passed, or the user's expiry has passed)
+    if (exDate < now) {
+      return NextResponse.json({
+        is_valid: false,
+        valid_until: 0,
+        error: "Membership expired",
+      }, { status: 401, headers: corsHeaders });
     }
-    return NextResponse.json(resData, { status: 401, headers: corsHeaders });
-  }
-  const new_token = await signAccessToken({
-    userId,
-    expiresAt
-  }, exDate) // 1 week expiration
-  // const dbExpiryDate = new Date()
-  // dbExpiryDate.setHours(dbExpiryDate.getHours() + 1); // 1 hour from now
-  // const userValidUntil = Math.floor(dbExpiryDate.getTime() / 1000); // Convert to Unix Timestamp (Seconds)
-  // const validUntil = Math.floor(new Date().getTime() / 1000) + (2 * 60) // for testing, 2 minutes from now
-  const validUntil = Math.floor(exDate.getTime() / 1000); // Convert to Unix Timestamp (Seconds)
-  const resData: ResData = {
-    is_valid: true,
-    valid_until: validUntil,
-    token: new_token
-  }
-  return NextResponse.json(resData, { status: 200, headers: corsHeaders });
+
+    // Check if token was generated more than 30 days ago OR if it's a short-lived token (e.g. 10m token from web)
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const tokenAge = now.getTime() - genDate.getTime();
+    const isShortLivedToken = exDate.getTime() - genDate.getTime() <= 24 * 60 * 60 * 1000; // <= 1 day
+
+    if (tokenAge > thirtyDaysInMs || isShortLivedToken) {
+      // Regenerate token by fetching latest expiry from DB
+      const userSubs = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.userId, userId))
+        .limit(1);
+
+      let userExpiry = new Date(0);
+      if (userSubs.length > 0) {
+        const sub = userSubs[0];
+        if (sub.plan === 'premium' && sub.currentPeriodEnd) {
+          userExpiry = new Date(sub.currentPeriodEnd);
+        } else if (sub.trialExpiresAt) {
+          userExpiry = new Date(sub.trialExpiresAt);
+        }
+      }
+
+      if (userExpiry < now) {
+        return NextResponse.json({
+          is_valid: false,
+          valid_until: 0,
+          error: "Membership expired",
+        }, { status: 401, headers: corsHeaders });
+      }
+
+      const threeMonthsFromNow = new Date();
+      threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+
+      let tokenExpiry = userExpiry;
+      if (userExpiry > threeMonthsFromNow) {
+        tokenExpiry = threeMonthsFromNow;
+      }
+
+      const new_token = await signAccessToken({
+        userId,
+        expiresAt: tokenExpiry.toISOString(),
+        generatedAt: now.toISOString()
+      }, tokenExpiry)
+
+      const validUntil = Math.floor(tokenExpiry.getTime() / 1000);
+      return NextResponse.json({
+        is_valid: true,
+        valid_until: validUntil,
+        token: new_token
+      }, { status: 200, headers: corsHeaders });
+
+    } else {
+      // Token is valid and less than 30 days old. Return success.
+      const validUntil = Math.floor(exDate.getTime() / 1000);
+      return NextResponse.json({
+        is_valid: true,
+        valid_until: validUntil,
+        token: token 
+      }, { status: 200, headers: corsHeaders });
+    }
+
   } catch (error) {
     console.error("Error verifying access:", error);
-    const resData: ResData = {
+    return NextResponse.json({
       is_valid: false,
       valid_until: 0,
-      error: "Internal server error",
-    }
-    return NextResponse.json(resData, { status: 500, headers: corsHeaders });
+      error: "Internal server error or invalid token signature",
+    }, { status: 401, headers: corsHeaders });
   }
 }
-
-
-// const dbExpiryDate = "2024-12-31T23:59:59.000Z"; // অথবা new Date() অবজেক্ট
-
-// // Date টিকে Unix Timestamp (Seconds) এ কনভার্ট করা
-// const userValidUntil = Math.floor(new Date(dbExpiryDate).getTime() / 1000);
-// const dbExpiryDate = new Date()
-// dbExpiryDate.setHours(dbExpiryDate.getHours() + 1); // 1 hour from now
-// const userValidUntil = Math.floor(dbExpiryDate.getTime() / 1000); // Convert to Unix Timestamp (Seconds)
