@@ -29,6 +29,11 @@ export const relations = defineRelations(schema, (r) => ({
             to: r.freeAccessRequests.userId,
             alias: "freeAccessRequests",
         }),
+        transactions: r.many.transactions({
+            from: r.users.id,
+            to: r.transactions.userId,
+            alias: "transactions",
+        }),
     },
     sessions: {
         user: r.one.users({
@@ -61,6 +66,13 @@ export const relations = defineRelations(schema, (r) => ({
     freeAccessRequests: {
         user: r.one.users({
             from: r.freeAccessRequests.userId,
+            to: r.users.id,
+            alias: "user",
+        }),
+    },
+    transactions: {
+        user: r.one.users({
+            from: r.transactions.userId,
             to: r.users.id,
             alias: "user",
         }),

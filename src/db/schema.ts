@@ -1,5 +1,5 @@
-import { pgTable, text, timestamp, boolean, index, uuid } from "drizzle-orm/pg-core";
-
+import { pgTable, text, timestamp, boolean, index, uuid, integer } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -128,4 +128,22 @@ export const freeAccessRequests = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("freeAccessRequests_userId_idx").on(table.userId)],
+);
+
+export const transactions = pgTable(
+  "transactions",
+  {
+    id: uuid("id").primaryKey().notNull().default(sql`uuidv7()::uuid`),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    paymentMethod: text("payment_method").notNull(), // 'google_play', 'bkash', 'stripe', 'sslcommerz'
+    transactionId: text("transaction_id").notNull().unique(), // purchaseToken or TrxID
+    amount: integer("amount"), // Can be null if handled by Google Play
+    currency: text("currency").default("bdt"),
+    status: text("status").notNull(), // 'success', 'pending', 'failed'
+    metadata: text("metadata"), // JSON string for extra data (productId, orderId, etc.)
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("transactions_userId_idx").on(table.userId)]
 );
