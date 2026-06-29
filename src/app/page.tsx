@@ -2,8 +2,10 @@ import Link from "next/link";
 import { ArrowRight, ShieldCheck, Zap, Lock, PlaySquare, Globe, Heart, Activity, Smartphone, Info, Sparkles, CheckCircle2Icon } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { getAppDetails } from "@/lib/playstore";
 
 export default async function LandingPage() {
+  const appDetails = await getAppDetails("com.udvabok.noorfilter");
   const session = await auth.api.getSession({
     headers: await headers()
   });
@@ -136,28 +138,14 @@ export default async function LandingPage() {
             <div className="bg-slate-800/50 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-slate-700">
               <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
                 <Sparkles className="w-8 h-8 text-amber-400" />
-                What's New in Version 81.0
+                What's New in Version {appDetails.version}
               </h2>
               <ul className="space-y-4">
                 <li className="flex gap-4">
                   <div className="mt-1"><CheckCircle2Icon className="w-5 h-5 text-emerald-400" /></div>
                   <div>
-                    <strong className="text-lg">Added Custom Site Blocking:</strong>
-                    <p className="text-slate-300 mt-1">You can now block any specific website or domain using our Safe Internet VPN feature.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <div className="mt-1"><CheckCircle2Icon className="w-5 h-5 text-emerald-400" /></div>
-                  <div>
-                    <strong className="text-lg">Enhanced Detection Engine:</strong>
-                    <p className="text-slate-300 mt-1">Significantly improved the accuracy of Facebook Reels blocking to reduce false positives while scrolling.</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <div className="mt-1"><CheckCircle2Icon className="w-5 h-5 text-emerald-400" /></div>
-                  <div>
-                    <strong className="text-lg">YouTube Shorts Optimization:</strong>
-                    <p className="text-slate-300 mt-1">Faster and more reliable blocking specifically tailored for YouTube Shorts.</p>
+                    <strong className="text-lg">Latest Updates:</strong>
+                    <p className="text-slate-300 mt-1 whitespace-pre-line">{appDetails.recentChanges}</p>
                   </div>
                 </li>
               </ul>
