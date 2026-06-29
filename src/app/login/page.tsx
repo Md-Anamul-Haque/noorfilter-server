@@ -10,10 +10,10 @@ function AuthForm() {
   const returnUrl = searchParams.get("return_url") || "/dashboard";
 
   const handleGoogleSignIn = async () => {
-    const data = await authClient.signIn.social({
+    await authClient.signIn.social({
       provider: "google",
+      callbackURL: returnUrl,
     });
-
   };
 
   return (
