@@ -108,11 +108,16 @@ export async function POST(req: Request) {
     });
 
     // 4. Update the user's subscription
-    let addDays = 30; // Default 1 month
-    if (productId.includes("year")) {
-      addDays = 365;
-    } else if (productId.includes("6month")) {
-      addDays = 180;
+    const expiryTimeMillis = purchaseInfo.expiryTimeMillis;
+    let newExpiryDate = new Date();
+
+    if (expiryTimeMillis) {
+      newExpiryDate = new Date(parseInt(expiryTimeMillis, 10));
+    } else {
+      // Fallback যদি কোনো কারণে Google date না দেয়
+      let addDays = 180; // 6 months default
+      if (productId.includes("1_month")) addDays = 30;
+      newExpiryDate.setDate(newExpiryDate.getDate() + addDays);
     }
 
     // Corrected Drizzle Syntax
@@ -125,14 +130,12 @@ export async function POST(req: Request) {
       ? new Date(currentSub.currentPeriodEnd)
       : now;
 
-    baseDate.setDate(baseDate.getDate() + addDays);
-
     if (currentSub) {
       await db.update(subscriptions)
         .set({
           plan: "premium",
           status: "active",
-          currentPeriodEnd: baseDate,
+          currentPeriodEnd: newExpiryDate,
         })
         .where(eq(subscriptions.userId, userId));
     } else {
@@ -140,7 +143,7 @@ export async function POST(req: Request) {
         userId,
         plan: "premium",
         status: "active",
-        currentPeriodEnd: baseDate,
+        currentPeriodEnd: newExpiryDate,
       });
     }
 
