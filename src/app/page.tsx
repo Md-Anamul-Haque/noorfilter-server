@@ -55,7 +55,7 @@ export default async function LandingPage() {
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-bold mb-8">
                 <Sparkles className="w-4 h-4" />
-                <span>Version 81.0 is here!</span>
+                <span>Version {appDetails.version} is here!</span>
               </div>
 
               <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
