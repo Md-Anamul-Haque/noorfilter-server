@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Zap, Lock, PlaySquare, Globe, Heart, Activity, Smartphone, Info, Sparkles, CheckCircle2Icon } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-emerald-200">
       {/* Navbar */}
@@ -15,12 +20,21 @@ export default function LandingPage() {
               <span className="font-extrabold text-2xl tracking-tight text-slate-900">NoorFilter</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link
-                href="/login"
-                className="text-sm font-bold bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-slate-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
-              >
-                Sign In
-              </Link>
+              {session ? (
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-bold bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-slate-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-sm font-bold bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-slate-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -51,10 +65,10 @@ export default function LandingPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href="/login"
+                  href={session ? "/dashboard" : "/login"}
                   className="flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full hover:from-emerald-700 hover:to-teal-700 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
                 >
-                  Reclaim Your Time
+                  {session ? "Go to Dashboard" : "Reclaim Your Time"}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </div>
