@@ -1,10 +1,14 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.udvabok.noorfilter",
-    "sha256_cert_fingerprints": [
-      "YOUR_SHA256_FINGERPRINT_HERE"
-    ]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.udvabok.noorfilter",
+      "sha256_cert_fingerprints": [
+        "23:83:82:18:68:A1:C0:AA:9D:22:ED:82:28:2D:D8:70:7A:83:72:E9:1A:4D:FA:8E:CC:AA:E5:93:8F:F0:7D:B2"
+      ]
+    }
   }
-}]
+]

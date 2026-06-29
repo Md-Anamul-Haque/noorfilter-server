@@ -12,7 +12,7 @@ export const createAppLaunchToken = withAuthCurry(async (user: User): Promise<st
         userId: user.id,
         expiresAt: tokenExpiry.toISOString(),
         generatedAt: now.toISOString()
-    }, '10m');
+    }, '1m');
 
     return token;
 });
