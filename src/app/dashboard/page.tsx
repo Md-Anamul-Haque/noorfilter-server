@@ -46,8 +46,8 @@ function DashboardContent() {
 
       setAppLaunchStatus("অ্যাপ চালু করা হচ্ছে...");
 
-      const intentUrl = `intent://auth?token=${encodeURIComponent(jwt)}#Intent;scheme=noorfilter;package=com.udvabok.noorfilter;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.udvabok.noorfilter;end`;
-      window.location.href = intentUrl;
+      const appLinkUrl = `https://noorfilter.udvabok.com/app-auth?token=${encodeURIComponent(jwt)}`;
+      window.location.href = appLinkUrl;
     } catch (err) {
       console.error(err);
       setAppLaunchError("দুঃখিত! অ্যাপে প্রবেশ করা যায়নি। আবার চেষ্টা করুন।");
