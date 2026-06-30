@@ -1,20 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { headers } from 'next/headers'
 import { signAccessToken, verifyAccessToken } from "@/lib/jwt";
 import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { corsHeaders } from "@/lib/corsHeaders";
 
 type ResData = {
   is_valid: boolean;
+  // Android expects milliseconds (Unix ms timestamp)
   valid_until: number;
   error?: string;
   token?: string
 }
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+
+// CORS Preflight handler
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function GET() {
@@ -91,7 +93,8 @@ export async function GET() {
         generatedAt: now.toISOString()
       }, tokenExpiry)
 
-      const validUntil = Math.floor(tokenExpiry.getTime() / 1000);
+      // Android expects milliseconds
+      const validUntil = tokenExpiry.getTime();
       return NextResponse.json({
         is_valid: true,
         valid_until: validUntil,
@@ -100,11 +103,12 @@ export async function GET() {
 
     } else {
       // Token is valid and less than 30 days old. Return success.
-      const validUntil = Math.floor(exDate.getTime() / 1000);
+      // Android expects milliseconds
+      const validUntil = exDate.getTime();
       return NextResponse.json({
         is_valid: true,
         valid_until: validUntil,
-        token: token 
+        token: token
       }, { status: 200, headers: corsHeaders });
     }
 

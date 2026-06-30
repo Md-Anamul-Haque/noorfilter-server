@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { corsHeaders } from "@/lib/corsHeaders";
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 export async function GET() {
   return NextResponse.json([
@@ -38,12 +43,5 @@ export async function GET() {
     "textBn": "লেজারের মতো মনোযোগ সম্পন্ন একজন সাধারণ মানুষই সফল যোদ্ধা।",
     "category": "motivational"
   }
-], {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    });
+], { headers: corsHeaders });
 }
-

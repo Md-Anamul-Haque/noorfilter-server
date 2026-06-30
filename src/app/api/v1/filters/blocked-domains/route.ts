@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { corsHeaders } from "@/lib/corsHeaders";
 import adultFilterData from "@/data/filters/blocked-domains/adult.json";
 import scamFilterData from "@/data/filters/blocked-domains/scam.json";
 import drugsFilterData from "@/data/filters/blocked-domains/drugs.json";
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET() {
   return NextResponse.json({
     adult:adultFilterData.domains,
@@ -57,11 +63,5 @@ export async function GET() {
       "cracked-software.com",
       "warez-demo.net"
     ]
-  }, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    });
-}
+  }, { headers: corsHeaders });
+}
