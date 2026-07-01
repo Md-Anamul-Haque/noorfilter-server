@@ -34,7 +34,9 @@ export async function POST(req: Request) {
 
     const headersList = await headers();
     const bearerToken = headersList.get('Authorization');
-    const token = bearerToken?.split(' ')[1] || null;
+    const token = bearerToken?.startsWith('Bearer ')
+      ? bearerToken.slice(7)
+      : null;
 
     if (!token) {
       return NextResponse.json({
@@ -147,6 +149,9 @@ export async function POST(req: Request) {
       });
     }
 
+    // Return the actual new expiry date that was saved to the DB (from Google Play),
+    // NOT baseDate (which was the old expiry). Android uses this to show the user
+    // their new subscription end date immediately after payment.
     return NextResponse.json({
       success: true,
       message: "Subscription updated successfully",
